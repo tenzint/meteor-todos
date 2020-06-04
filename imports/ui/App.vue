@@ -26,8 +26,12 @@
         </form>
       </template>
     </header>
-    <ul>
-      <Task v-for="task in tasks" v-bind:key="task._id" v-bind:task="task" />
+    <ul><Task
+        v-for="task in tasks"
+        v-bind:key="task._id"
+        v-bind:task="task"
+        v-bind:showPrivateButton="showPrivateButton(task)"
+      />
     </ul>
   </div>
 </template>
@@ -51,15 +55,23 @@ export default {
   methods: {
     handleSubmit(event) {
       Meteor.call("tasks.insert", this.newTask);
-      
+
       // Clear form
       this.newTask = "";
     },
     toggleHideCompleted() {
       this.hideCompleted = !this.hideCompleted;
+    },
+    showPrivateButton(task) {
+      const currentUserId = this.currentUser?._id;
+      return task.owner === currentUserId;
     }
   },
   meteor: {
+    $subscribe: {
+      // Subscribes to the 'threads' publication with no parameters
+      tasks: []
+    },
     tasks() {
       let filteredTasks = Tasks.find({}, { sort: { createdAt: -1 } }).fetch();
       if (this.hideCompleted) {
